@@ -81,7 +81,7 @@ if [ -n "$PULP_BINDINGS_PR_NUMBER" ]; then
   cd ..
 fi
 
-
+export PULP_PR_NUMBER=$(echo $COMMIT_MSG | grep -oP 'Required\ PR:\ https\:\/\/github\.com\/pulp\/pulpcore\/pull\/(\d+)' | awk -F'/' '{print $7}')
 git clone --depth=1 https://github.com/pulp/pulpcore.git --branch master
 
 if [ -n "$PULP_PR_NUMBER" ]; then

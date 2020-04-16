@@ -21,7 +21,7 @@ requirements = galaxy_pulp_requirements + [
 
 
 setup(
-    name="galaxy-ng",
+    name="ansible-galaxy-ng",
     version="0.1.0a1",
     description="galaxy-ng plugin for the Pulp Project",
     license="GPLv2+",
@@ -41,5 +41,5 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
     ),
-    entry_points={"pulpcore.plugin": ["galaxy_ng = galaxy_ng:default_app_config"]},
+    entry_points={"pulpcore.plugin": ["ansible_galaxy_ng = galaxy_ng:default_app_config"]},
 )
