@@ -67,6 +67,30 @@
         state: present
       when: s3_test | default(false)
 
+    - name: Attrs
+      command: "docker exec pulp pip show attrs"
+      register: pipshowresult
+
+    - name: Debugging Attrs
+      debug:
+        msg: "{{ pipshowresult }}"
+
+    - name: pipdeptree
+      command: "docker exec pulp pipdeptree"
+      register: pipdeptreeresult
+
+    - name: Debugging pipdeptree
+      debug:
+        msg: "{{ pipdeptreeresult }}"
+
+    - name: Migration
+      command: "docker exec pulp /usr/local/bin/django-admin makemigrations --check --dry-run"
+      register: migrationresult
+
+    - name: Debugging Migration
+      debug:
+        msg: "{{ migrationresult }}"
+
     - block:
         - name: "Wait for Pulp"
           uri:
