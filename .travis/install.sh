@@ -89,5 +89,7 @@ cat >> vars/main.yaml << VARSYAML
 pulp_settings: null
 VARSYAML
 
-ansible-playbook build_container.yaml
-ansible-playbook start_container.yaml
+wget -qO- https://github.com/crazy-max/travis-wait-enhanced/releases/download/v1.0.0/travis-wait-enhanced_1.0.0_linux_x86_64.tar.gz | sudo tar -C /usr/local/bin -zxvf - travis-wait-enhanced
+
+travis-wait-enhanced --interval=1m --timeout=40m -- ansible-playbook build_container.yaml
+travis-wait-enhanced --interval=1m --timeout=40m -- ansible-playbook start_container.yaml
