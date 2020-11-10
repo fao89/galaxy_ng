@@ -90,6 +90,7 @@ class TestUiSyncConfigViewSet(BaseTestCase):
             {
                 "auth_url": "https://auth.com",
                 "name": "rh-certified",
+                "token": "TEST",
                 "policy": "immediate",
                 "requirements_file": None,
                 "url": "https://updated.url.com/",
@@ -135,6 +136,7 @@ class TestUiSyncConfigViewSet(BaseTestCase):
             self.build_config_url(self.community_remote.name),
             {
                 "auth_url": "https://auth.com",
+                "token": "TEST",
                 "name": "community",
                 "policy": "immediate",
                 "requirements_file": (
