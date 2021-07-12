@@ -18,12 +18,12 @@ class DistributionViewSet(
     queryset = pulp_models.AnsibleDistribution.objects.exclude(
         name__startswith='inbound-').exclude(
             name__endswith='-synclist').order_by('name')
-    permission_classes = [access_policy.DistributionAccessPolicy]
+    # permission_classes = [access_policy.DistributionAccessPolicy]
     versioning_class = versioning.UIVersioning
 
 
 class MyDistributionViewSet(DistributionViewSet):
-    permission_classes = [access_policy.MyDistributionAccessPolicy]
+    # permission_classes = [access_policy.MyDistributionAccessPolicy]
 
     def get_queryset(self):
         synclists = get_objects_for_user(

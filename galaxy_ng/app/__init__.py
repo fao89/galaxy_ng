@@ -10,13 +10,13 @@ class PulpGalaxyPluginAppConfig(PulpPluginAppConfig):
     label = "galaxy"
     version = "4.4.0dev"
 
-    def ready(self):
-        super().ready()
-        post_migrate.connect(
-            set_pulp_container_access_policies,
-            sender=self,
-            dispatch_uid="override_pulp_container_access_policies"
-        )
+    # def ready(self):
+    #     super().ready()
+    #     post_migrate.connect(
+    #         set_pulp_container_access_policies,
+    #         sender=self,
+    #         dispatch_uid="override_pulp_container_access_policies"
+    #     )
 
 
 def set_pulp_container_access_policies(sender, **kwargs):
