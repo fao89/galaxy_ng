@@ -4,8 +4,13 @@
 additional_plugins:
 - branch: master
   name: pulp_ansible
+additional_repos: []
 black: false
 check_commit_message: false
+check_gettext: true
+check_manifest: true
+check_openapi_schema: true
+check_stray_pulpcore_imports: true
 cherry_pick_automation: false
 coverage: false
 deploy_client_to_pypi: false
@@ -15,6 +20,7 @@ deploy_daily_client_to_rubygems: false
 deploy_to_pypi: false
 docker_fixtures: false
 docs_test: true
+issue_tracker: redmine
 plugin_app_label: galaxy
 plugin_camel: GalaxyNG
 plugin_camel_short: Galaxy
@@ -22,18 +28,27 @@ plugin_caps: GALAXY_NG
 plugin_caps_short: GALAXY
 plugin_dash: galaxy-ng
 plugin_dash_short: galaxy
+plugin_default_branch: master
 plugin_name: galaxy_ng
 plugin_snake: galaxy_ng
+publish_docs_to_pulpprojectdotorg: false
+pulp_scheme: http
 pulp_settings: null
 pulpcore_branch: master
 pulpcore_pip_version_specifier: null
+pulpprojectdotorg_key_id: null
 pydocstyle: true
 pypi_username: null
 redmine_project: null
+release_user: pulpbot
 stable_branch: null
 test_bindings: false
+test_cli: false
 test_performance: false
+test_released_plugin_with_next_pulpcore_release: false
 test_s3: false
 travis_addtl_services: []
 travis_notifications: null
+update_redmine: false
+upgrade_range: []
 
