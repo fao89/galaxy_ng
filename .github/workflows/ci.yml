@@ -55,9 +55,9 @@ jobs:
       - name: Install requirements
         run: pip3 install -r dev_requirements.txt
 
-      
 
-      
+
+
 
       # Lint code.
       - name: Run flake8
@@ -76,13 +76,13 @@ jobs:
   test:
     runs-on: ubuntu-latest
     # run only after lint finishes
-    needs: lint
     strategy:
       fail-fast: false
       matrix:
         env:
           - TEST: pulp
           - TEST: s3
+          - TEST: docs
 
     steps:
       - uses: actions/checkout@v2
@@ -105,7 +105,7 @@ jobs:
           echo "HTTPIE_CONFIG_DIR=$GITHUB_WORKSPACE/.ci/assets/httpie/" >> $GITHUB_ENV
 
       - name: Before Install
-        
+
         run: .github/workflows/scripts/before_install.sh
         shell: bash
         env:
@@ -119,7 +119,7 @@ jobs:
           GITHUB_CONTEXT: ${{ github.event.pull_request.commits_url }}
 
       - name: Install
-        
+
         run: .github/workflows/scripts/install.sh
         shell: bash
         env:
@@ -133,7 +133,7 @@ jobs:
           GITHUB_CONTEXT: ${{ github.event.pull_request.commits_url }}
 
       - name: Install Python client
-        
+
         run: .github/workflows/scripts/install_python_client.sh
         shell: bash
 
@@ -143,7 +143,7 @@ jobs:
         shell: bash
 
       - name: Before Script
-        
+
         run: .github/workflows/scripts/before_script.sh
         shell: bash
         env:
@@ -163,7 +163,7 @@ jobs:
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
 
       - name: Script
-        
+
         run: .github/workflows/scripts/script.sh
         shell: bash
         env:
@@ -178,15 +178,7 @@ jobs:
 
       - name: After failure
         if: failure()
-        run: |
-          echo "Need to debug? Please check: https://github.com/marketplace/actions/debugging-with-tmate"
-          http --timeout 30 --check-status --pretty format --print hb http://pulp/pulp/api/v3/status/ || true
-          docker images || true
-          docker ps -a || true
-          docker logs pulp || true
-          docker exec pulp ls -latr /etc/yum.repos.d/ || true
-          docker exec pulp cat /etc/yum.repos.d/* || true
-          docker exec pulp pip3 list
+        uses: mxschmitt/action-tmate@v3.6
 
 
   update_manifest:
