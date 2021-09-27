@@ -48,13 +48,7 @@ class InstallCollectionTestCase(PulpTestCase):
     def test_upload_collection(self):
         """Test whether ansible-galaxy can upload a Collection to Pulp."""
         delete_orphans()
-        groups = [
-            {
-                "id": 1,
-                "name": "system:partner-engineers",
-                "object_permissions": ["upload_to_namespace", "change_namespace"],
-            }
-        ]
+        groups = []
 
         data = str(self.namespace_api.list().data)
         if "pulp" not in data:
