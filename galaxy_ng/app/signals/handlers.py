@@ -53,11 +53,18 @@ def set_pulp_container_access_policies(sender, **kwargs):
     if apps is None:
         from django.apps import apps
     AccessPolicy = apps.get_model("core", "AccessPolicy")
+    print(AccessPolicy.objects.first().__dict__.keys())
 
     print("Overriding pulp_container access policy")
     for view in PULP_CONTAINER_VIEWSETS:
+        print("################################################################################")
+        print(view)
+        print(PULP_CONTAINER_VIEWSETS[view].keys())
+        print("################################################################################")
         policy, created = AccessPolicy.objects.update_or_create(
             viewset_name=view, defaults={**PULP_CONTAINER_VIEWSETS[view], "customized": True})
+        print(created)
+        print(policy.__dict__.keys())
 
 
 post_migrate.connect(
