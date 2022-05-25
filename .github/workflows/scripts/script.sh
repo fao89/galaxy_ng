@@ -92,7 +92,7 @@ if [[ "$TEST" = 'bindings' ]]; then
   cd ..
 fi
 cd $REPO_ROOT
-
+cat "$(pip show pulpcore-client | grep Location | cut -d' ' -f2)/pulpcore/client/pulpcore/api/tasks_api.py"
 if [[ "$TEST" = 'bindings' ]]; then
   if [ -f $REPO_ROOT/.ci/assets/bindings/test_bindings.py ]; then
     python $REPO_ROOT/.ci/assets/bindings/test_bindings.py
@@ -140,12 +140,12 @@ else
         pytest -v -r sx --color=yes --suppress-no-test-exit-code --pyargs galaxy_ng.tests.functional -m parallel -n 8
         pytest -v -r sx --color=yes --pyargs galaxy_ng.tests.functional -m "not parallel"
 
-    
+
     else
         pytest -v -r sx --color=yes --suppress-no-test-exit-code --pyargs galaxy_ng.tests.functional -m "parallel and not nightly" -n 8
         pytest -v -r sx --color=yes --pyargs galaxy_ng.tests.functional -m "not parallel and not nightly"
 
-    
+
     fi
 
 fi

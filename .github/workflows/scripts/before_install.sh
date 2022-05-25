@@ -68,7 +68,7 @@ if [ "$GITHUB_EVENT_NAME" = "pull_request" ] || [ "${BRANCH_BUILD}" = "1" -a "${
 then
   export PULPCORE_PR_NUMBER=$(echo $COMMIT_MSG | grep -oP 'Required\ PR:\ https\:\/\/github\.com\/pulp\/pulpcore\/pull\/(\d+)' | awk -F'/' '{print $7}')
   export PULP_SMASH_PR_NUMBER=$(echo $COMMIT_MSG | grep -oP 'Required\ PR:\ https\:\/\/github\.com\/pulp\/pulp-smash\/pull\/(\d+)' | awk -F'/' '{print $7}')
-  export PULP_OPENAPI_GENERATOR_PR_NUMBER=$(echo $COMMIT_MSG | grep -oP 'Required\ PR:\ https\:\/\/github\.com\/pulp\/pulp-openapi-generator\/pull\/(\d+)' | awk -F'/' '{print $7}')
+  export PULP_OPENAPI_GENERATOR_PR_NUMBER=66
   export PULP_CLI_PR_NUMBER=$(echo $COMMIT_MSG | grep -oP 'Required\ PR:\ https\:\/\/github\.com\/pulp\/pulp-cli\/pull\/(\d+)' | awk -F'/' '{print $7}')
   export PULP_ANSIBLE_PR_NUMBER=$(echo $COMMIT_MSG | grep -oP 'Required\ PR:\ https\:\/\/github\.com\/pulp\/pulp_ansible\/pull\/(\d+)' | awk -F'/' '{print $7}')
   export PULP_CONTAINER_PR_NUMBER=$(echo $COMMIT_MSG | grep -oP 'Required\ PR:\ https\:\/\/github\.com\/pulp\/pulp_container\/pull\/(\d+)' | awk -F'/' '{print $7}')
@@ -77,7 +77,7 @@ then
 else
   export PULPCORE_PR_NUMBER=
   export PULP_SMASH_PR_NUMBER=
-  export PULP_OPENAPI_GENERATOR_PR_NUMBER=
+  export PULP_OPENAPI_GENERATOR_PR_NUMBER=66
   export PULP_CLI_PR_NUMBER=
   export PULP_ANSIBLE_PR_NUMBER=
   export PULP_CONTAINER_PR_NUMBER=
