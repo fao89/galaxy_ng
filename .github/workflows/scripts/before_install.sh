@@ -129,7 +129,7 @@ if [ -n "$PULP_ANSIBLE_PR_NUMBER" ]; then
   git fetch --depth=1 origin pull/$PULP_ANSIBLE_PR_NUMBER/head:$PULP_ANSIBLE_PR_NUMBER
   git checkout $PULP_ANSIBLE_PR_NUMBER
 fi
-
+echo PULP_ANSIBLE_COMMIT=$(git rev-parse HEAD) >> "$GITHUB_ENV"
 cd ..
 
 git clone --depth=1 https://github.com/pulp/pulp_container.git --branch main
@@ -139,7 +139,7 @@ if [ -n "$PULP_CONTAINER_PR_NUMBER" ]; then
   git fetch --depth=1 origin pull/$PULP_CONTAINER_PR_NUMBER/head:$PULP_CONTAINER_PR_NUMBER
   git checkout $PULP_CONTAINER_PR_NUMBER
 fi
-
+echo PULP_CONTAINER_COMMIT=$(git rev-parse HEAD) >> "$GITHUB_ENV"
 cd ..
 
 git clone --depth=1 https://github.com/ansible/galaxy-importer.git --branch v0.4.5
@@ -149,7 +149,7 @@ if [ -n "$GALAXY_IMPORTER_PR_NUMBER" ]; then
   git fetch --depth=1 origin pull/$GALAXY_IMPORTER_PR_NUMBER/head:$GALAXY_IMPORTER_PR_NUMBER
   git checkout $GALAXY_IMPORTER_PR_NUMBER
 fi
-
+echo IMPORTER_COMMIT=$(git rev-parse HEAD) >> "$GITHUB_ENV"
 cd ..
 
 # Intall requirements for ansible playbooks
