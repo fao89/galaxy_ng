@@ -5,11 +5,11 @@
 
 additional_repos:
 - bindings: true
-  branch: main
+  revision: e0df10e19782e1d207c179283d4de5a890efda50
   name: pulp_ansible
   org: pulp
 - bindings: true
-  branch: main
+  revision: 43f7987176148bf85785b436f7c65a04c802b5d6
   name: pulp_container
   org: pulp
 - bindings: false

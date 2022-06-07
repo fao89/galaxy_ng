@@ -122,24 +122,30 @@ fi
 cd ..
 
 
-git clone --depth=1 https://github.com/pulp/pulp_ansible.git --branch main
+git clone --depth=1 https://github.com/pulp/pulp_ansible.git
 cd pulp_ansible
+
+git fetch --depth=1 origin e0df10e19782e1d207c179283d4de5a890efda50
+git checkout e0df10e19782e1d207c179283d4de5a890efda50
 
 if [ -n "$PULP_ANSIBLE_PR_NUMBER" ]; then
   git fetch --depth=1 origin pull/$PULP_ANSIBLE_PR_NUMBER/head:$PULP_ANSIBLE_PR_NUMBER
   git checkout $PULP_ANSIBLE_PR_NUMBER
 fi
-echo PULP_ANSIBLE_COMMIT=$(git rev-parse HEAD) >> "$GITHUB_ENV"
+
 cd ..
 
-git clone --depth=1 https://github.com/pulp/pulp_container.git --branch main
+git clone --depth=1 https://github.com/pulp/pulp_container.git
 cd pulp_container
+
+git fetch --depth=1 origin 43f7987176148bf85785b436f7c65a04c802b5d6
+git checkout 43f7987176148bf85785b436f7c65a04c802b5d6
 
 if [ -n "$PULP_CONTAINER_PR_NUMBER" ]; then
   git fetch --depth=1 origin pull/$PULP_CONTAINER_PR_NUMBER/head:$PULP_CONTAINER_PR_NUMBER
   git checkout $PULP_CONTAINER_PR_NUMBER
 fi
-echo PULP_CONTAINER_COMMIT=$(git rev-parse HEAD) >> "$GITHUB_ENV"
+
 cd ..
 
 git clone --depth=1 https://github.com/ansible/galaxy-importer.git --branch v0.4.5
@@ -149,7 +155,7 @@ if [ -n "$GALAXY_IMPORTER_PR_NUMBER" ]; then
   git fetch --depth=1 origin pull/$GALAXY_IMPORTER_PR_NUMBER/head:$GALAXY_IMPORTER_PR_NUMBER
   git checkout $GALAXY_IMPORTER_PR_NUMBER
 fi
-echo IMPORTER_COMMIT=$(git rev-parse HEAD) >> "$GITHUB_ENV"
+
 cd ..
 
 # Intall requirements for ansible playbooks

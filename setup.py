@@ -102,7 +102,7 @@ requirements = [
 
 # https://softwareengineering.stackexchange.com/questions/223634/what-is-meant-by-now-you-have-two-problems
 def strip_package_name(spec):
-    operators = ['=', '>', '<', '~', '!', '^']
+    operators = ['=', '>', '<', '~', '!', '^', '@']
     for idc, char in enumerate(spec):
         if char in operators:
             return spec[:idc]
@@ -110,7 +110,7 @@ def strip_package_name(spec):
 
 
 # next line can be replaced via sed in ci scripts/post_before_install.sh
-unpin_requirements = os.getenv("LOCK_REQUIREMENTS") == "0"
+unpin_requirements = True
 if unpin_requirements:
     """
     To enable the installation of local dependencies e.g: a local fork of
