@@ -81,15 +81,15 @@ class Command(BaseCommand):
             help="Either an abs path ending in .yaml|.yml to be loaded or the literal YAML string."
         )
 
-    def validate(self, data):
-        if not data["requirements_file"] and any(
-            domain in data["url"] for domain in COMMUNITY_DOMAINS
-        ):
-            raise CommandError(
-                'Syncing content from community domains without specifying a '
-                'requirements file is not allowed.'
-            )
-        return data
+    # def validate(self, data):
+    #     if not data["requirements_file"] and any(
+    #         domain in data["url"] for domain in COMMUNITY_DOMAINS
+    #     ):
+    #         raise CommandError(
+    #             'Syncing content from community domains without specifying a '
+    #             'requirements file is not allowed.'
+    #         )
+    #     return data
 
     def create_remote(self, data):
         remote, remote_created = CollectionRemote.objects.get_or_create(name=data["name"])

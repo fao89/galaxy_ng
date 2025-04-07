@@ -554,26 +554,26 @@ class AccessPolicyBase(AccessPolicyFromDB):
 
         return True
 
-    def require_requirements_yaml(self, request, view, action):
+    # def require_requirements_yaml(self, request, view, action):
 
-        if remote := request.data.get("remote"):
-            with contextlib.suppress(ansible_models.CollectionRemote.DoesNotExist):
-                remote = ansible_models.CollectionRemote.objects.get(pk=extract_pk(remote))
-        if not remote:
-            obj = view.get_object()
-            remote = obj.remote.cast()
-            if remote is None:
-                return True
+    #     if remote := request.data.get("remote"):
+    #         with contextlib.suppress(ansible_models.CollectionRemote.DoesNotExist):
+    #             remote = ansible_models.CollectionRemote.objects.get(pk=extract_pk(remote))
+    #     if not remote:
+    #         obj = view.get_object()
+    #         remote = obj.remote.cast()
+    #         if remote is None:
+    #             return True
 
-        if not remote.requirements_file and any(
-            domain in remote.url for domain in COMMUNITY_DOMAINS
-        ):
-            raise ValidationError(
-                detail={
-                    'requirements_file':
-                        _('Syncing content from galaxy.ansible.com without specifying a '
-                          'requirements file is not allowed.')
-                })
+        # if not remote.requirements_file and any(
+        #     domain in remote.url for domain in COMMUNITY_DOMAINS
+        # ):
+        #     raise ValidationError(
+        #         detail={
+        #             'requirements_file':
+        #                 _('Syncing content from galaxy.ansible.com without specifying a '
+        #                   'requirements file is not allowed.')
+        #         })
         return True
 
     def is_local_resource_management_disabled(self, request, view, action):

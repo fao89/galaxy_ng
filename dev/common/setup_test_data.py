@@ -100,7 +100,8 @@ for profile_name in PROFILES:
     except Exception as e:
         print(e)
 
-print("CollectionRemote community url points to beta-galaxy.ansible.com")
+print("CollectionRemote community url points to galaxy.ansible.com")
 remote = CollectionRemote.objects.get(name="community")
-remote.url = "https://beta-galaxy.ansible.com/api/"
+remote.sync_dependencies = False
+remote.url = "https://galaxy.ansible.com/api/"
 remote.save()

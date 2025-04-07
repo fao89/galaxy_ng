@@ -139,16 +139,16 @@ class CollectionRemoteSerializer(pulp_viewsets.CollectionRemoteSerializer):
         return utils.get_write_only_fields(self, obj)
 
     def validate(self, data):
-        if not data.get('requirements_file') and any(
-            domain in data['url'] for domain in COMMUNITY_DOMAINS
-        ):
-            raise serializers.ValidationError(
-                detail={
-                    'requirements_file':
-                        _('Syncing content from community domains without specifying a '
-                          'requirements file is not allowed.')
-                }
-            )
+        # if not data.get('requirements_file') and any(
+        #     domain in data['url'] for domain in COMMUNITY_DOMAINS
+        # ):
+        #     raise serializers.ValidationError(
+        #         detail={
+        #             'requirements_file':
+        #                 _('Syncing content from community domains without specifying a '
+        #                   'requirements file is not allowed.')
+        #         }
+        #     )
 
         init_data = self.initial_data
         if not data.get('proxy_password') and init_data.get('write_only_fields'):

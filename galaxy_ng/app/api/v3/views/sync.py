@@ -40,15 +40,15 @@ class SyncRemoteView(api_base.APIView):
 
         remote = distro.repository.remote.ansible_collectionremote
 
-        if not remote.requirements_file and any(
-            domain in remote.url for domain in COMMUNITY_DOMAINS
-        ):
-            raise ValidationError(
-                detail={
-                    'requirements_file':
-                        _('Syncing content from galaxy.ansible.com without specifying a '
-                          'requirements file is not allowed.')
-                })
+        # if not remote.requirements_file and any(
+        #     domain in remote.url for domain in COMMUNITY_DOMAINS
+        # ):
+        #     raise ValidationError(
+        #         detail={
+        #             'requirements_file':
+        #                 _('Syncing content from galaxy.ansible.com without specifying a '
+        #                   'requirements file is not allowed.')
+        #         })
 
         result = dispatch(
             collection_sync,
