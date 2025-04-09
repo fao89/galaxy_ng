@@ -37,7 +37,7 @@ x-common-env: &common-env
   PULP_ANSIBLE_API_HOSTNAME: 'https://localhost'
   PULP_ANSIBLE_CONTENT_HOSTNAME: "https://localhost"
   PULP_CONTENT_ORIGIN: "https://localhost"
-  PULP_CSRF_TRUSTED_ORIGINS: "['https://localhost']"
+  PULP_CSRF_TRUSTED_ORIGINS: "['http://localhost']"
 
   # signing ...
   PULP_GALAXY_AUTO_SIGN_COLLECTIONS: 'false'
@@ -54,7 +54,7 @@ x-common-env: &common-env
   PULP_PRIVATE_KEY_PATH: '/src/galaxy_ng/dev/common/container_auth_private_key.pem'
 
   # auth ...
-  PULP_GALAXY_AUTHENTICATION_CLASSES: "['galaxy_ng.app.auth.session.SessionAuthentication', 'ansible_base.jwt_consumer.hub.auth.HubJWTAuth', 'rest_framework.authentication.TokenAuthentication', 'rest_framework.authentication.BasicAuthentication']"
+  PULP_GALAXY_AUTHENTICATION_CLASSES: "['galaxy_ng.app.auth.session.SessionAuthentication', 'rest_framework.authentication.TokenAuthentication', 'rest_framework.authentication.BasicAuthentication']"
   PULP_ANSIBLE_BASE_JWT_VALIDATE_CERT: 'false'
   PULP_ANSIBLE_BASE_JWT_KEY: 'https://localhost'
   PULP_GALAXY_FEATURE_FLAGS__external_authentication: 'true'

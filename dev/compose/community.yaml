@@ -38,10 +38,10 @@ x-common-env: &common-env
   PULP_ANSIBLE_API_HOSTNAME: 'http://localhost:5001'
   PULP_ANSIBLE_CONTENT_HOSTNAME: "http://localhost:5001"
   PULP_CONTENT_ORIGIN: "http://localhost:5001"
-  PULP_CSRF_TRUSTED_ORIGINS: "['https://localhost']"
+  PULP_CSRF_TRUSTED_ORIGINS: "['http://localhost']"
 
   # auth ...
-  PULP_GALAXY_AUTHENTICATION_CLASSES: "['galaxy_ng.app.auth.session.SessionAuthentication', 'rest_framework.authentication.TokenAuthentication', 'rest_framework.authentication.BasicAuthentication', 'django.contrib.auth.backends.ModelBackend']"
+  PULP_GALAXY_AUTHENTICATION_CLASSES: "['galaxy_ng.app.auth.session.SessionAuthentication', 'rest_framework.authentication.TokenAuthentication', 'rest_framework.authentication.BasicAuthentication']"
   PULP_GALAXY_ENABLE_UNAUTHENTICATED_COLLECTION_ACCESS: 'true'
   PULP_GALAXY_ENABLE_UNAUTHENTICATED_COLLECTION_DOWNLOAD: 'true'
 
