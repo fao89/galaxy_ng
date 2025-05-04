@@ -51,7 +51,7 @@ RUN set -ex; \
                                /tmp/ansible && \
     install -dm 0700 -o galaxy /etc/pulp/gnupg && \
     chown -R galaxy ${VIRTUAL_ENV} && \
-    pip3.11 install --no-deps --editable /app && \
+    pip3.11 install --no-deps /app && \
     PULP_CONTENT_ORIGIN=x django-admin collectstatic && \
     install -Dm 0644 -o galaxy /app/ansible.cfg /etc/ansible/ansible.cfg && \
     install -Dm 0644 -o galaxy /app/docker/etc/settings.py /etc/pulp/settings.py && \
