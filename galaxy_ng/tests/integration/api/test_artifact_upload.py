@@ -439,7 +439,7 @@ def test_ansible_lint_exception_AAH_2606(galaxy_client, hub_version):
                     found = True
                     break
             if not found:
-                raise Exception(f"did not find any of {lines} in the log output")
+                raise Exception(f"did not find any of {lines} in the log output \n{log_messages}")
 
 
 @pytest.mark.importer
