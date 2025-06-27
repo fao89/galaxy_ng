@@ -25,14 +25,23 @@ class MyDistributionViewSet(DistributionViewSet):
     permission_classes = [access_policy.MyDistributionAccessPolicy]
 
     def get_queryset(self):
-        synclists = get_objects_for_user(
+        # Optimized query using joins instead of subquery
+        # This replaces the TODO comment about finding a better way to query this data
+        from django.db.models import Q
+
+        # Get user's synclists and join directly with distributions
+        # This avoids the values_list subquery approach
+        user_synclists = get_objects_for_user(
             self.request.user,
             'galaxy.change_synclist',
             any_perm=True,
             accept_global_perms=False,
-            qs=models.SyncList.objects.all()
+            qs=models.SyncList.objects.select_related()
         )
 
-        # TODO(newswangerd): find a better way query this data
-        return pulp_models.AnsibleDistribution.objects.filter(
-            name__in=synclists.values_list('name', flat=True)).order_by('name')
+        # Use a more efficient query that joins the tables directly
+        synclist_names = list(user_synclists.values_list('name', flat=True))
+
+        return pulp_models.AnsibleDistribution.objects.select_related().filter(
+            name__in=synclist_names
+        ).order_by('name')

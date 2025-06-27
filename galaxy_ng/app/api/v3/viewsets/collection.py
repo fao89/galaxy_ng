@@ -37,6 +37,7 @@ from galaxy_ng.app.tasks import (
     import_and_auto_approve,
     import_to_staging,
 )
+from django.db import transaction
 
 
 log = logging.getLogger(__name__)
@@ -110,50 +111,54 @@ class CollectionUploadViewSet(api_base.LocalSettingsMixin,
 
         path = self._get_path()
 
-        try:
-            namespace = models.Namespace.objects.get(name=filename.namespace)
-        except models.Namespace.DoesNotExist:
-            raise ValidationError(
-                _('Namespace "{0}" does not exist.').format(filename.namespace)
+        # Optimized namespace lookup with transaction and error handling
+        with transaction.atomic():
+            try:
+                # Use select_related for any related fields to minimize queries
+                namespace = models.Namespace.objects.select_related().get(name=filename.namespace)
+            except models.Namespace.DoesNotExist:
+                raise ValidationError(
+                    _('Namespace "{0}" does not exist.').format(filename.namespace)
+                )
+
+            self.check_object_permissions(request, namespace)
+
+            try:
+                response = super().create(request, path)
+            except ValidationError:
+                log.exception('Failed to publish artifact %s (namespace=%s, sha256=%s)',  # noqa
+                              data['file'].name, namespace, data.get('sha256'))
+                raise
+
+            task_href = response.data['task']
+
+            # icky, have to extract task id from the task_href url
+            task_id = task_href.strip("/").split("/")[-1]
+
+            # Optimize task and import object retrieval
+            task_detail = Task.objects.select_related().get(pk=task_id)
+            pulp_collection_import = PulpCollectionImport.objects.select_related('task').get(pk=task_id)
+
+            # Create the collection import record
+            models.CollectionImport.objects.create(
+                task_id=pulp_collection_import,
+                created_at=task_detail.pulp_created,
+                namespace=namespace,
+                name=data['filename'].name,
+                version=data['filename'].version,
             )
 
-        self.check_object_permissions(request, namespace)
+            # TODO(alikins): CollectionImport.get_absolute_url() should be able to generate this, but
+            #       it needs the repo/distro base_path for the <path> part of url
+            import_obj_url = reverse("galaxy:api:v3:collection-imports-detail",
+                                     kwargs={'pk': str(task_detail.pk),
+                                             'path': path})
 
-        try:
-            response = super().create(request, path)
-        except ValidationError:
-            log.exception('Failed to publish artifact %s (namespace=%s, sha256=%s)',  # noqa
-                          data['file'].name, namespace, data.get('sha256'))
-            raise
-
-        task_href = response.data['task']
-
-        # icky, have to extract task id from the task_href url
-        task_id = task_href.strip("/").split("/")[-1]
-
-        task_detail = Task.objects.get(pk=task_id)
-
-        pulp_collection_import = PulpCollectionImport.objects.get(pk=task_id)
-
-        models.CollectionImport.objects.create(
-            task_id=pulp_collection_import,
-            created_at=task_detail.pulp_created,
-            namespace=namespace,
-            name=data['filename'].name,
-            version=data['filename'].version,
-        )
-
-        # TODO(alikins): CollectionImport.get_absolute_url() should be able to generate this, but
-        #       it needs the repo/distro base_path for the <path> part of url
-        import_obj_url = reverse("galaxy:api:v3:collection-imports-detail",
-                                 kwargs={'pk': str(task_detail.pk),
-                                         'path': path})
-
-        log.debug('import_obj_url: %s', import_obj_url)
-        return Response(
-            data={'task': import_obj_url},
-            status=response.status_code
-        )
+            log.debug('import_obj_url: %s', import_obj_url)
+            return Response(
+                data={'task': import_obj_url},
+                status=response.status_code
+            )
 
 
 class CollectionArtifactDownloadView(api_base.APIView):

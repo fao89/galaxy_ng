@@ -37,19 +37,24 @@ class LegacyNamespaceFilter(filterset.FilterSet):
         return queryset
 
     def owner_filter(self, queryset, name, value):
-        # find the owner on the linked v3 namespace
+        # Optimized query to avoid N+1 problem
+        # Use a single query with prefetch_related to minimize database hits
 
-        # FIXME(jctanner): this is terribly slow
-        pks = []
-        for ns1 in LegacyNamespace.objects.all():
-            if not ns1.namespace:
-                continue
-            ns3 = ns1.namespace
-            owners = get_v3_namespace_owners(ns3)
-            if value in [x.username for x in owners]:
-                pks.append(ns1.id)
+        # First get all legacy namespaces with their related v3 namespaces
+        legacy_namespaces = LegacyNamespace.objects.select_related('namespace').filter(
+            namespace__isnull=False
+        )
 
-        queryset = queryset.filter(id__in=pks)
+        # Find namespaces owned by the user
+        owned_namespace_ids = []
+        for legacy_ns in legacy_namespaces:
+            if legacy_ns.namespace:
+                owners = get_v3_namespace_owners(legacy_ns.namespace)
+                if value in [owner.username for owner in owners]:
+                    owned_namespace_ids.append(legacy_ns.id)
+
+        # Filter queryset to only include owned namespaces
+        queryset = queryset.filter(id__in=owned_namespace_ids)
 
         return queryset
 

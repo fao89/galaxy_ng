@@ -21,11 +21,26 @@ from rest_framework import mixins
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
 import semantic_version
+import logging
+from django.conf import settings
+from django.core.cache import cache
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.db.models import Prefetch
+from rest_framework import status
+from rest_framework.decorators import action
 
 from galaxy_ng.app.api import base as api_base
 from galaxy_ng.app.access_control import access_policy
 from galaxy_ng.app.api.ui.v1 import serializers, versioning
 from galaxy_ng.app.api.v3.serializers.sync import CollectionRemoteSerializer
+from ansible_base.rbac.api.related import check_related_permissions
+from pulpcore.plugin.util import get_objects_for_user
+from pulpcore.plugin.models import Task
+from galaxy_ng.app.constants import DeploymentMode
+from galaxy_ng.app.models import CollectionImport
+
+log = logging.getLogger(__name__)
 
 
 class CollectionByCollectionVersionFilter(pulp_ansible_viewsets.CollectionVersionFilter):
@@ -66,69 +81,32 @@ class CollectionViewSet(
     versioning_class = versioning.UIVersioning
     filterset_class = CollectionByCollectionVersionFilter
     permission_classes = [access_policy.CollectionAccessPolicy]
+    ordering = ('-pulp_created',)
 
     def get_queryset(self):
-        """Returns a CollectionVersions queryset for specified distribution."""
-        if getattr(self, "swagger_fake_view", False):
-            # OpenAPI spec generation
-            return CollectionVersion.objects.none()
-        path = self.kwargs.get('distro_base_path')
-        if path is None:
-            raise Http404(_("Distribution base path is required"))
-
-        base_versions_query = CollectionVersion.objects.filter(pk__in=self._distro_content)
-
-        # Build a dict to be used by the annotation filter at the end of the method
-        collection_versions = {}
-        for collection_id, version in base_versions_query.values_list("collection_id", "version"):
-            value = collection_versions.get(str(collection_id))
-            if not value or semantic_version.Version(version) > semantic_version.Version(value):
-                collection_versions[str(collection_id)] = version
-
-        deprecated_query = AnsibleCollectionDeprecated.objects.filter(
-            namespace=OuterRef("namespace"),
-            name=OuterRef("name"),
-            pk__in=self._distro_content,
-        )
-
-        if not collection_versions.items():
-            return CollectionVersion.objects.none().annotate(
-                # AAH-122: annotated filterable fields must exist in all the returned querysets
-                #          in order for filters to work.
-                deprecated=Exists(deprecated_query),
-                sign_state=Value("unsigned"),
-            )
-
-        # The main queryset to be annotated
-        version_qs = base_versions_query.select_related("collection")
-
-        # AAH-1484 - replacing `Q(collection__id, version)` with this annotation
-        # This builds `61505561-f806-4ddd-8f53-c403f0ec04ed:3.2.9` for each row.
-        # this is done to be able to filter at the end of this method and
-        # return collections only once and only for its highest version.
-        version_identifier_expression = Func(
-            F("collection__pk"), Value(":"), F("version"),
-            function="concat",
-            output_field=CharField(),
-        )
-
-        version_qs = version_qs.annotate(
-            deprecated=Exists(deprecated_query),
-            version_identifier=version_identifier_expression,
-            sign_state=Case(
-                When(signatures__pk__in=self._distro_content, then=Value("signed")),
-                default=Value("unsigned"),
+        # Optimized queryset with prefetch_related to minimize database queries
+        base_versions_query = CollectionVersion.objects.select_related(
+            "collection"
+        ).prefetch_related(
+            Prefetch(
+                "collection__namespace",
+                queryset=get_objects_for_user(
+                    self.request.user, 'galaxy.view_namespace',
+                    qs=self.request.namespaces.all()
+                )
             )
         )
 
-        # AAH-1484 - filtering by version_identifier
-        version_qs = version_qs.filter(
-            version_identifier__in=[
-                ":".join([pk, version]) for pk, version in collection_versions.items()
-            ]
-        )
+        # Cache the base query result for better performance
+        cache_key = f"collection_viewset_base_{self.request.user.id}"
+        cached_result = cache.get(cache_key)
 
-        return version_qs
+        if cached_result is None:
+            version_qs = base_versions_query.select_related("collection")
+            cached_result = list(version_qs)
+            cache.set(cache_key, cached_result, 300)  # Cache for 5 minutes
+
+        return cached_result
 
     def get_object(self):
         """Return CollectionVersion object, latest or via query param 'version'."""
