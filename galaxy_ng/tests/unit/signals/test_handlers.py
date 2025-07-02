@@ -336,6 +336,29 @@ class TestDABAssignmentSignals:
 
         mock_apply_assignment.assert_called_once_with(mock_instance)
 
+    @patch("galaxy_ng.app.signals.handlers.rbac_signal_in_progress")
+    @patch("galaxy_ng.app.signals.handlers._apply_dab_assignment")
+    def test_copy_dab_user_role_assignment_shared_team_role(
+        self, mock_apply_assignment, mock_signal_check
+    ):
+        """Test DAB user role assignment for shared team role."""
+        from galaxy_ng.app.signals.handlers import (
+            copy_dab_user_role_assignment,
+            RoleUserAssignment, SHARED_TEAM_ROLE,
+        )
+
+        mock_signal_check.return_value = False
+
+        mock_instance = Mock(spec=RoleUserAssignment)
+        mock_instance.role_definition.name = SHARED_TEAM_ROLE
+        mock_instance.user = Mock()
+        mock_instance.content_object.group.user_set = Mock()
+
+        copy_dab_user_role_assignment(sender=Mock(), instance=mock_instance, created=True)
+
+        mock_instance.content_object.group.user_set.add.assert_called_once_with(mock_instance.user)
+        mock_apply_assignment.assert_not_called()
+
     @patch("galaxy_ng.app.signals.handlers.Role")
     @patch("galaxy_ng.app.signals.handlers.assign_role")
     def test_apply_dab_assignment(self, mock_assign_role, mock_role_model):
