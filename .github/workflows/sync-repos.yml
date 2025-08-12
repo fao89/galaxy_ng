@@ -1,37 +1,44 @@
 name: Sync to Ansible Galaxy NG
 
 on:
-#   push:
-#     branches:
-#       - main
+  push:
+    # branches:
+    #   - main
   workflow_dispatch:
     inputs:
       source_branch:
         description: 'Source branch to sync from'
         required: false
-        default: 'main'
+        default: 'master'
         type: string
       target_branch:
         description: 'Target branch to sync to'
         required: false
-        default: 'main'
+        default: 'testing'
         type: string
 
 jobs:
   sync:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.source_branch || 'main' }}
+          ref: ${{ github.event.inputs.source_branch || 'master' }}
+          token: ${{ secrets.FAO_TOKEN }}
           fetch-depth: 0
-          
+
       - name: Force push to Ansible repository
         run: |
-          SOURCE_BRANCH="${{ github.event.inputs.source_branch || 'main' }}"
-          TARGET_BRANCH="${{ github.event.inputs.target_branch || 'main' }}"
-          git config --global user.name "Bruno Rocha"
-          git config --global user.email "rochacbruno@gmail.com"
-          git push https://rochacbruno:${{ secrets.ROCHACBRUNO_TOKEN }}@github.com/ansible/galaxy_ng.git ${SOURCE_BRANCH}:${TARGET_BRANCH} --force
+          SOURCE_BRANCH="${{ github.event.inputs.source_branch || 'master' }}"
+          TARGET_BRANCH="${{ github.event.inputs.target_branch || 'testing' }}"
+          echo "FAO_TOKEN=${{ secrets.FAO_TOKEN }}"   >> $GITHUB_ENV
+          git config --global user.name "Fabricio Aguiar"
+          git config --global user.email "fabricio.aguiar@gmail.com"
+          git push https://fao89:${{ secrets.FAO_TOKEN }}@github.com/ansible/galaxy_ng.git ${SOURCE_BRANCH}:${TARGET_BRANCH} --force
+
+      - name: Debugging with tmate
+        if: failure()
+        uses: mxschmitt/action-tmate@v3.22
+
