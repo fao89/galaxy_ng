@@ -284,7 +284,7 @@ def copy_role_definition_to_role(sender, instance, created, **kwargs):
         role_name = ROLEDEF_TO_PULP.get(instance.name, instance.name)
         role = Role.objects.filter(name=role_name).first()
         if not role:
-            Role.objects.create(name=role_name)
+            Role.objects.get_or_create(name=role_name)
         # TODO(jctanner): other fields? like description
 
 
