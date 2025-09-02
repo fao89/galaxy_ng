@@ -23,7 +23,7 @@ MAX_AVATAR_SIZE = 3 * 1024 * 1024  # 3MB
 def dispatch_create_pulp_namespace_metadata(galaxy_ns, download_logo):
 
     dispatch(
-        _create_pulp_namespace,
+        '_create_pulp_namespace',
         kwargs={
             "galaxy_ns_pk": galaxy_ns.pk,
             "download_logo": download_logo,
@@ -156,7 +156,7 @@ def _create_pulp_namespace(galaxy_ns_pk, download_logo):
         repos = [x.repository for x in repo_content_qs]
 
         return dispatch(
-            _add_namespace_metadata_to_repos,
+            '_add_namespace_metadata_to_repos',
             kwargs={
                 "namespace_pk": metadata.pk,
                 "repo_list": [x.pk for x in repos],

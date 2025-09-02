@@ -15,6 +15,8 @@ from galaxy_ng.app.models.auth import Group, User
 def add_username_to_groupname(username: str, groupname: str) -> None:
     user = User.objects.filter(username=username).first()
     group = Group.objects.filter(name=groupname).first()
+    if group is None:
+        return None
     return add_user_to_group(user, group)
 
 
