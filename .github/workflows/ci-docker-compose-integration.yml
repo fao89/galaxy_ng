@@ -4,6 +4,11 @@ on:
   pull_request:
     branches:
       - '**'
+  push:
+    branches:
+      - '**'
+    tags:
+      - '**'
   schedule:
     # * is a special character in YAML so you have to quote this string
     # runs at 3:00 UTC daily
@@ -78,7 +83,7 @@ jobs:
           max_runs=10
           for i in $(seq 1 $max_runs); do
             echo "$i: checking api status..."
-            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -u "${{ env.DJANGO_SUPERUSER_USERNAME }}:${{ env.DJANGO_SUPERUSER_PASSWORD }}" -LI http://localhost:5001${{ env.PULP_GALAXY_API_PATH_PREFIX }}pulp/api/v3/status/)
+            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -u "${{ env.DJANGO_SUPERUSER_USERNAME }}:${{ env.DJANGO_SUPERUSER_PASSWORD }}" -LI http://localhost:5001${{ env.GALAXY_API_PATH_PREFIX }}pulp/api/v3/status/)
             echo "$RESPONSE"
             if [ "$RESPONSE" -ne 200 ]; then
               echo "API is down. Retrying in 10 seconds..."
@@ -96,11 +101,11 @@ jobs:
 
       - name: Checking for uncommitted migrations...
         if: ${{ matrix.env.TEST_PROFILE != 'certified-sync' }}
-        run: docker exec -t compose-manager-1 bash -c "django-admin makemigrations galaxy --check --dry-run"
+        run: docker exec -t compose-manager-1 bash -c "django-admin makemigrations galaxy_fs --check --dry-run"
 
       - name: Checking for uncommitted migrations... (certified-sync)
         if: ${{ matrix.env.TEST_PROFILE == 'certified-sync' }}
-        run: docker exec -t compose-standalone-manager-1 bash -c "django-admin makemigrations galaxy --check --dry-run"
+        run: docker exec -t compose-standalone-manager-1 bash -c "django-admin makemigrations galaxy_fs --check --dry-run"
 
       - name: Install integration requirements
         run: |

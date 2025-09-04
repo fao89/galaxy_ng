@@ -117,6 +117,13 @@ INSTALLED_APPS = [
 ]
 
 LOGGING = {
+    "version": 1,
+    "formatters": {
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
+    },
     "loggers": {
         "galaxy_ng.app.api.v1.tasks.legacy_role_import": {
             "level": "INFO",

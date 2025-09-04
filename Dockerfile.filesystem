@@ -1,0 +1,58 @@
+FROM registry.access.redhat.com/ubi8:latest
+
+ARG USER_ID=1000
+
+# Remove vim to avoid conflicts
+RUN rpm -qa | egrep ^vim | xargs rpm -e --nodeps
+
+# Add galaxy user
+RUN adduser --uid "${USER_ID}" -G 0 --home-dir /app --no-create-home galaxy
+
+# Copy requirements
+COPY requirements/requirements.insights.txt /tmp/requirements.txt
+
+# Install system packages and Python dependencies
+RUN set -ex; \
+    DNF="dnf -y --disableplugin=subscription-manager" && \
+    INSTALL_PKGS="glibc-langpack-en git-core libpq python3.11 python3.11-pip gettext skopeo" && \
+    INSTALL_PKGS_BUILD="gcc libpq-devel python3.11-devel openldap-devel" && \
+    LANG=C ${DNF} install ${INSTALL_PKGS} ${INSTALL_PKGS_BUILD} && \
+    python3.11 -m venv "/venv" && \
+    source /venv/bin/activate && \
+    python3.11 -m pip install --upgrade pip setuptools wheel && \
+    python3.11 -m pip install --upgrade -r /tmp/requirements.txt && \
+    ${DNF} remove ${INSTALL_PKGS_BUILD} && \
+    rm -rf /var/cache/dnf && \
+    rm -f /tmp/requirements.txt
+
+ENV VIRTUAL_ENV="/venv" 
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# Copy application code
+COPY . /app
+WORKDIR /app
+
+# Install application and setup filesystem directories
+RUN set -ex; \
+    install -dm 0775 -o galaxy \
+                               /var/lib/galaxy/{media,tasks} \
+                               /content/{collections,repositories,metadata} \
+                               /tmp/ansible && \
+    pip3.11 install --config-settings editable_mode=compat --no-deps --editable /app && \
+    chown -R galaxy ${VIRTUAL_ENV} && \
+    DJANGO_SETTINGS_MODULE=minimal_migration_settings python manage.py collectstatic --noinput && \
+    install -Dm 0644 -o galaxy /app/ansible.cfg /etc/ansible/ansible.cfg && \
+    mkdir -p /etc/galaxy && \
+    install -Dm 0644 -o galaxy /app/minimal_migration_settings.py /etc/galaxy/settings.py
+
+# Switch to galaxy user
+USER galaxy
+
+# Set default environment
+ENV DJANGO_SETTINGS_MODULE=minimal_migration_settings
+ENV GALAXY_CONTENT_ROOT=/content
+ENV GALAXY_TASK_STORAGE=/var/lib/galaxy/tasks
+
+EXPOSE 8000
+
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

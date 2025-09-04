@@ -3,8 +3,8 @@ FROM base_img AS builder
 
 USER root
 RUN mkdir -p /etc/nginx/pulp \
-    && ln $(pip show pulp_ansible | sed -n -e 's/Location: //p')/pulp_ansible/app/webserver_snippets/nginx.conf /etc/nginx/pulp/pulp_ansible.conf \
-    && ln $(pip show pulp_container | sed -n -e 's/Location: //p')/pulp_container/app/webserver_snippets/nginx.conf /etc/nginx/pulp/pulp_container.conf \
+    # && ln $(pip show pulp_ansible | sed -n -e 's/Location: //p')/pulp_ansible/app/webserver_snippets/nginx.conf /etc/nginx/pulp/pulp_ansible.conf \
+    # && ln $(pip show pulp_container | sed -n -e 's/Location: //p')/pulp_container/app/webserver_snippets/nginx.conf /etc/nginx/pulp/pulp_container.conf \
     && cp /app/galaxy_ng/app/webserver_snippets/nginx.conf /etc/nginx/pulp/galaxy.conf
 
 FROM docker.io/nginx:latest

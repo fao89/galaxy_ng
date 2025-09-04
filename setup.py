@@ -98,9 +98,7 @@ django_ansible_base_dependency = (
 
 requirements = [
     "galaxy-importer>=0.4.31,<0.5.0",
-    "pulpcore>=3.49.40,<3.50.0",
-    "pulp_ansible>=0.25.1,<0.26",
-    "pulp-container>=2.19.2,<2.20.0",
+    # Pulp dependencies removed for filesystem-based approach
     "django>=4.2.21,<4.3",
     "django-prometheus>=2.0.0",
     "social-auth-core>=4.4.2",
@@ -115,6 +113,11 @@ requirements = [
     django_ansible_base_dependency,  # noqa 501
     "django-crum==0.7.9",
     "django-automated-logging~=6.2",
+    # Additional dependencies for filesystem operations
+    "PyYAML>=5.4.0",
+    "pathlib2; python_version<'3.4'",
+    # PostgreSQL for task system
+    "psycopg2-binary>=2.8.0",
 ]
 
 
@@ -151,8 +154,8 @@ if unpin_requirements:
 setup(
     name=package_name,
     version=version,
-    description="galaxy-ng plugin for the Pulp Project",
-    long_description="galaxy-ng plugin for the Pulp Project",
+    description="galaxy-ng: Ansible automation hub with filesystem-based content management",
+    long_description="galaxy-ng: Ansible automation hub with efficient filesystem-based content management",
     license="GPLv2+",
     author="Red Hat, Inc.",
     author_email="info@ansible.com",
@@ -171,7 +174,7 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
     ),
-    entry_points={"pulpcore.plugin": ["galaxy_ng = galaxy_ng:default_app_config"]},
+    # Removed pulpcore plugin entry point for filesystem-based approach
     cmdclass={
         "prepare_static": PrepareStaticCommand,
         "build_py": BuildPyCommand,

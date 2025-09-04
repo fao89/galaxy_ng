@@ -10,17 +10,17 @@ x-common-env: &common-env
 
   # Disable Pulp integrations
   GALAXY_ENABLE_PULP_INTEGRATION: 'false'
-
+  
   # Filesystem content management
   GALAXY_CONTENT_ROOT: '/content'
   GALAXY_TASK_STORAGE: '/var/lib/galaxy/tasks'
-
+  
   # Task system configuration
   GALAXY_TASK_WORKERS: 4
   GALAXY_TASK_POLL_INTERVAL: 5
   GALAXY_TASK_RETENTION_DAYS: 30
   GALAXY_WORKER_TIMEOUT_MINUTES: 5
-
+  
   # Validation settings
   GALAXY_QUICK_VALIDATION: 'true'
   GALAXY_REQUIRE_CONTENT_APPROVAL: 'true'
@@ -117,21 +117,20 @@ services:
     command: |
       bash -c "
         set -e;
-        # rm -rf /var/lib/galaxy/.migrated;
-        /src/dev/compose/bin/devinstall;
+        rm -rf /var/lib/galaxy/.migrated;
+        /src/galaxy_ng/dev/compose/bin/devinstall;
 
         # Create content directories
         mkdir -p /content/{collections,repositories,metadata};
         mkdir -p /var/lib/galaxy/tasks;
 
-        # Run Django migrations for filesystem deployment
-        export DJANGO_SETTINGS_MODULE=minimal_migration_settings;
+        # Run Django migrations
         python /src/manage.py check --database default;
         python /src/manage.py migrate;
-        python /src/create_superuser.py;
-        python /src/manage.py shell < /src/dev/common/setup_test_data_fs.py || echo 'Test data setup skipped';
+        python /src/manage.py shell < /src/galaxy_ng/dev/common/setup_test_data_fs.py;
+        python /src/manage.py createsuperuser --noinput || true;
 
-        # touch /var/lib/galaxy/.migrated;
+        touch /var/lib/galaxy/.migrated;
         chown -R galaxy:galaxy /content /var/lib/galaxy;
       "
 
@@ -162,11 +161,10 @@ services:
     <<: *debugging
     command: |
       bash -c "
-        /src/dev/compose/bin/devinstall;
-        # /src/dev/compose/bin/wait /var/lib/galaxy/.migrated;
+        /src/galaxy_ng/dev/compose/bin/devinstall;
+        /src/galaxy_ng/dev/compose/bin/wait /var/lib/galaxy/.migrated;
 
-        # Start Django development server with filesystem settings
-        export DJANGO_SETTINGS_MODULE=minimal_migration_settings;
+        # Start Django development server
         python /src/manage.py runserver 0.0.0.0:8000
       "
     healthcheck:
@@ -195,11 +193,10 @@ services:
     <<: *debugging
     command: |
       bash -c "
-        /src/dev/compose/bin/devinstall;
-        # /src/dev/compose/bin/wait /var/lib/galaxy/.migrated;
+        /src/galaxy_ng/dev/compose/bin/devinstall;
+        /src/galaxy_ng/dev/compose/bin/wait /var/lib/galaxy/.migrated;
 
-        # Start task worker with filesystem settings
-        export DJANGO_SETTINGS_MODULE=minimal_migration_settings;
+        # Start task worker
         python /src/manage.py run_task_worker --worker-name worker-1 --poll-interval 5
       "
 
@@ -223,11 +220,10 @@ services:
     <<: *debugging
     command: |
       bash -c "
-        /src/dev/compose/bin/devinstall;
-        # /src/dev/compose/bin/wait /var/lib/galaxy/.migrated;
+        /src/galaxy_ng/dev/compose/bin/devinstall;
+        /src/galaxy_ng/dev/compose/bin/wait /var/lib/galaxy/.migrated;
 
-        # Start task worker with filesystem settings
-        export DJANGO_SETTINGS_MODULE=minimal_migration_settings;
+        # Start task worker
         python /src/manage.py run_task_worker --worker-name worker-2 --poll-interval 5
       "
 
@@ -251,11 +247,10 @@ services:
     <<: *debugging
     command: |
       bash -c "
-        /src/dev/compose/bin/devinstall;
-        # /src/dev/compose/bin/wait /var/lib/galaxy/.migrated;
+        /src/galaxy_ng/dev/compose/bin/devinstall;
+        /src/galaxy_ng/dev/compose/bin/wait /var/lib/galaxy/.migrated;
 
-        # Start task scheduler with filesystem settings
-        export DJANGO_SETTINGS_MODULE=minimal_migration_settings;
+        # Start task scheduler
         python /src/manage.py run_task_scheduler --poll-interval 60
       "
 
@@ -281,12 +276,11 @@ services:
     <<: *debugging
     command: |
       bash -c "
-        /src/dev/compose/bin/devinstall;
-        # /src/dev/compose/bin/wait /var/lib/galaxy/.migrated;
+        /src/galaxy_ng/dev/compose/bin/devinstall;
+        /src/galaxy_ng/dev/compose/bin/wait /var/lib/galaxy/.migrated;
 
-        # Start content serving with filesystem settings
-        export DJANGO_SETTINGS_MODULE=minimal_migration_settings;
-        python /src/dev/common/serve_content.py --port 8001 --content-root /content
+        # Start content serving
+        python /src/galaxy_ng/dev/common/serve_content.py --port 8001 --content-root /content
       "
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health/"]
@@ -322,9 +316,8 @@ services:
     <<: *debugging
     command: |
       bash -c "
-        /src/dev/compose/bin/devinstall;
-        # /src/dev/compose/bin/wait /var/lib/galaxy/.migrated;
-        export DJANGO_SETTINGS_MODULE=minimal_migration_settings;
+        /src/galaxy_ng/dev/compose/bin/devinstall;
+        /src/galaxy_ng/dev/compose/bin/wait /var/lib/galaxy/.migrated;
 
         # Give some time for API to start;
         sleep 10;

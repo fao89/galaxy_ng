@@ -1,0 +1,78 @@
+x-common-env: &common-env
+
+  DJANGO_SUPERUSER_USERNAME: admin
+  DJANGO_SUPERUSER_EMAIL: admin@example.com
+  DJANGO_SUPERUSER_PASSWORD: admin
+
+  POSTGRES_USER: galaxy_ng
+  POSTGRES_PASSWORD: galaxy_ng
+  POSTGRES_DB: galaxy_ng
+
+  # Database configuration
+  DATABASES__default__ENGINE: django.db.backends.postgresql
+  DATABASES__default__NAME: galaxy_ng
+  DATABASES__default__USER: galaxy_ng
+  DATABASES__default__PASSWORD: galaxy_ng
+  DATABASES__default__HOST: postgres
+  DATABASES__default__PORT: 5432
+
+  DJANGO_DEBUG: 1
+  DJANGO_SETTINGS_MODULE: minimal_migration_settings
+
+  # Filesystem content management
+  GALAXY_CONTENT_ROOT: '/content'
+  GALAXY_TASK_STORAGE: '/var/lib/galaxy/tasks'
+
+services:
+  postgres:
+    image: "postgres:15"
+    ports:
+      - '5433:5432'
+    environment:
+      <<: *common-env
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "galaxy_ng"]
+      interval: 10s
+      retries: 5
+    volumes:
+      - "pg_data:/var/lib/postgresql/data"
+
+  galaxy_fs:
+    build:
+      context: ../../
+      dockerfile: Dockerfile.filesystem
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - "content_data:/content"
+      - "task_data:/var/lib/galaxy/tasks"
+      - "../../:/src"
+    ports:
+      - '5001:8000'
+    environment:
+      <<: *common-env
+    command: |
+      bash -c "
+        set -e;
+        
+        # Wait for database and run migrations
+        python /src/manage.py migrate;
+        python /src/create_superuser.py;
+        
+        # Start Django development server
+        python /src/manage.py runserver 0.0.0.0:8000
+      "
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  content_data:
+    name: galaxy_fs_content_data
+  task_data:
+    name: galaxy_fs_task_data
+  pg_data:
+    name: galaxy_fs_pg_data

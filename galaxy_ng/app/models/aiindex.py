@@ -31,4 +31,5 @@ class AIIndexDenyList(models.Model):
     )
 
     class Meta:
+        app_label = "galaxy"
         unique_together = ("scope", "reference")

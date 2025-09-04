@@ -25,6 +25,9 @@ class User(auth_models.AbstractUser):
 
     resource = AnsibleResourceField(primary_key_field="id")
 
+    class Meta:
+        app_label = "galaxy"
+
 
 class GroupManager(auth_models.GroupManager):
     def create_identity(self, scope, name):
@@ -46,6 +49,7 @@ class Group(PulpGroup):
     resource = AnsibleResourceField(primary_key_field="id")
 
     class Meta:
+        app_label = "galaxy"
         proxy = True
 
     def account_number(self):

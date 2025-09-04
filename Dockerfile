@@ -7,7 +7,7 @@ ENV LANG=en_US.UTF-8 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=off \
     PULP_SETTINGS=/etc/pulp/settings.py \
-    DJANGO_SETTINGS_MODULE=pulpcore.app.settings \
+    DJANGO_SETTINGS_MODULE=minimal_migration_settings \
     PATH="/venv/bin:${PATH}" \
     GIT_COMMIT=${GIT_COMMIT:-} \
     VIRTUAL_ENV="/venv"
@@ -58,6 +58,11 @@ RUN set -ex; \
     install -Dm 0755 -o galaxy /app/docker/entrypoint.sh /entrypoint.sh && \
     install -Dm 0755 -o galaxy /app/docker/bin/* /usr/local/bin/ && \
     install -Dm 0775 -o galaxy /app/galaxy-operator/bin/* /usr/bin/
+
+# FIX: Apply Django model app_label fixes for proper model configuration
+# These fixes resolve "Model class doesn't declare an explicit app_label" errors
+COPY fix_models.py /tmp/fix_models.py
+RUN python3.11 /tmp/fix_models.py && rm /tmp/fix_models.py
 
 USER galaxy
 WORKDIR /app
