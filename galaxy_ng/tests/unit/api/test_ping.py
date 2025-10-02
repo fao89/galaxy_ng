@@ -15,8 +15,9 @@ class TestPingView(BaseTestCase):
         super().setUp()
         self.ping_url = reverse("galaxy:api:ping")
 
-    @mock.patch.object(PingView, 'get')
-    def test_ping_success_all_systems_healthy(self, mock_super_get):
+    @mock.patch('galaxy_ng.app.api.ping.get_galaxy_ng_versions')
+    @mock.patch('galaxy_ng.app.api.ping.StatusView.get')
+    def test_ping_success_all_systems_healthy(self, mock_super_get, mock_get_versions):
         """Test ping endpoint returns 200 when all systems are healthy"""
         # Mock the parent StatusView response with healthy status
         mock_response = Response({
@@ -27,18 +28,22 @@ class TestPingView(BaseTestCase):
             "online_workers": 3,
             "versions": {"pulpcore": "3.25.0"}
         }, status=http_status.HTTP_200_OK)
+        mock_super_get.return_value = mock_response
+
+        mock_get_versions.return_value = {
+            "galaxy_ng_version": "4.12.0",
+            "pulpcore_version": "3.49.0"
+        }
 
         # Create a real PingView instance and call the actual get method
         view = PingView()
         view.request = self.client.get(self.ping_url).wsgi_request
-
-        with mock.patch('galaxy_ng.app.api.ping.StatusView.get', return_value=mock_response):
-            response = view.get(view.request)
+        response = view.get(view.request)
 
         self.assertEqual(response.status_code, http_status.HTTP_200_OK)
         self.assertIn("database_connection", response.data)
 
-    @mock.patch.object(PingView, 'get')
+    @mock.patch('galaxy_ng.app.api.ping.StatusView.get')
     def test_ping_database_disconnected(self, mock_super_get):
         """Test ping endpoint returns 503 when database is disconnected"""
         mock_response = Response({
@@ -48,17 +53,16 @@ class TestPingView(BaseTestCase):
             "online_content_apps": 1,
             "online_workers": 3
         }, status=http_status.HTTP_200_OK)
+        mock_super_get.return_value = mock_response
 
         view = PingView()
         view.request = self.client.get(self.ping_url).wsgi_request
-
-        with mock.patch('galaxy_ng.app.api.ping.StatusView.get', return_value=mock_response):
-            response = view.get(view.request)
+        response = view.get(view.request)
 
         self.assertEqual(response.status_code, http_status.HTTP_503_SERVICE_UNAVAILABLE)
         self.assertEqual(response.data["error"], "Database is not connected")
 
-    @mock.patch.object(PingView, 'get')
+    @mock.patch('galaxy_ng.app.api.ping.StatusView.get')
     @override_settings(CACHE_ENABLED=True)
     def test_ping_redis_disconnected_cache_enabled(self, mock_super_get):
         """Test ping endpoint returns 503 when Redis is disconnected and cache is enabled"""
@@ -69,19 +73,19 @@ class TestPingView(BaseTestCase):
             "online_content_apps": 1,
             "online_workers": 3
         }, status=http_status.HTTP_200_OK)
+        mock_super_get.return_value = mock_response
 
         view = PingView()
         view.request = self.client.get(self.ping_url).wsgi_request
-
-        with mock.patch('galaxy_ng.app.api.ping.StatusView.get', return_value=mock_response):
-            response = view.get(view.request)
+        response = view.get(view.request)
 
         self.assertEqual(response.status_code, http_status.HTTP_503_SERVICE_UNAVAILABLE)
         self.assertEqual(response.data["error"], "Redis is not connected")
 
-    @mock.patch.object(PingView, 'get')
+    @mock.patch('galaxy_ng.app.api.ping.get_galaxy_ng_versions')
+    @mock.patch('galaxy_ng.app.api.ping.StatusView.get')
     @override_settings(CACHE_ENABLED=False)
-    def test_ping_redis_disconnected_cache_disabled(self, mock_super_get):
+    def test_ping_redis_disconnected_cache_disabled(self, mock_super_get, mock_get_versions):
         """Test ping endpoint ignores Redis when cache is disabled"""
         mock_response = Response({
             "database_connection": {"connected": True},
@@ -90,16 +94,17 @@ class TestPingView(BaseTestCase):
             "online_content_apps": 1,
             "online_workers": 3
         }, status=http_status.HTTP_200_OK)
+        mock_super_get.return_value = mock_response
+
+        mock_get_versions.return_value = {"galaxy_ng_version": "4.12.0"}
 
         view = PingView()
         view.request = self.client.get(self.ping_url).wsgi_request
-
-        with mock.patch('galaxy_ng.app.api.ping.StatusView.get', return_value=mock_response):
-            response = view.get(view.request)
+        response = view.get(view.request)
 
         self.assertEqual(response.status_code, http_status.HTTP_200_OK)
 
-    @mock.patch.object(PingView, 'get')
+    @mock.patch('galaxy_ng.app.api.ping.StatusView.get')
     def test_ping_no_api_apps(self, mock_super_get):
         """Test ping endpoint returns 503 when no API apps are online"""
         mock_response = Response({
@@ -109,17 +114,16 @@ class TestPingView(BaseTestCase):
             "online_content_apps": 1,
             "online_workers": 3
         }, status=http_status.HTTP_200_OK)
+        mock_super_get.return_value = mock_response
 
         view = PingView()
         view.request = self.client.get(self.ping_url).wsgi_request
-
-        with mock.patch('galaxy_ng.app.api.ping.StatusView.get', return_value=mock_response):
-            response = view.get(view.request)
+        response = view.get(view.request)
 
         self.assertEqual(response.status_code, http_status.HTTP_503_SERVICE_UNAVAILABLE)
         self.assertEqual(response.data["error"], "No online API apps available")
 
-    @mock.patch.object(PingView, 'get')
+    @mock.patch('galaxy_ng.app.api.ping.StatusView.get')
     def test_ping_no_content_apps(self, mock_super_get):
         """Test ping endpoint returns 503 when no content apps are online"""
         mock_response = Response({
@@ -129,17 +133,16 @@ class TestPingView(BaseTestCase):
             "online_content_apps": 0,
             "online_workers": 3
         }, status=http_status.HTTP_200_OK)
+        mock_super_get.return_value = mock_response
 
         view = PingView()
         view.request = self.client.get(self.ping_url).wsgi_request
-
-        with mock.patch('galaxy_ng.app.api.ping.StatusView.get', return_value=mock_response):
-            response = view.get(view.request)
+        response = view.get(view.request)
 
         self.assertEqual(response.status_code, http_status.HTTP_503_SERVICE_UNAVAILABLE)
         self.assertEqual(response.data["error"], "No online content apps available")
 
-    @mock.patch.object(PingView, 'get')
+    @mock.patch('galaxy_ng.app.api.ping.StatusView.get')
     def test_ping_no_workers(self, mock_super_get):
         """Test ping endpoint returns 503 when no workers are online"""
         mock_response = Response({
@@ -149,32 +152,30 @@ class TestPingView(BaseTestCase):
             "online_content_apps": 1,
             "online_workers": 0
         }, status=http_status.HTTP_200_OK)
+        mock_super_get.return_value = mock_response
 
         view = PingView()
         view.request = self.client.get(self.ping_url).wsgi_request
-
-        with mock.patch('galaxy_ng.app.api.ping.StatusView.get', return_value=mock_response):
-            response = view.get(view.request)
+        response = view.get(view.request)
 
         self.assertEqual(response.status_code, http_status.HTTP_503_SERVICE_UNAVAILABLE)
         self.assertEqual(response.data["error"], "No online workers available")
 
-    @mock.patch.object(PingView, 'get')
+    @mock.patch('galaxy_ng.app.api.ping.StatusView.get')
     def test_ping_parent_status_view_error(self, mock_super_get):
         """Test ping endpoint returns parent StatusView error when it fails"""
         mock_response = Response({
             "error": "Internal server error"
         }, status=http_status.HTTP_500_INTERNAL_SERVER_ERROR)
+        mock_super_get.return_value = mock_response
 
         view = PingView()
         view.request = self.client.get(self.ping_url).wsgi_request
-
-        with mock.patch('galaxy_ng.app.api.ping.StatusView.get', return_value=mock_response):
-            response = view.get(view.request)
+        response = view.get(view.request)
 
         self.assertEqual(response.status_code, http_status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @mock.patch.object(PingView, 'get')
+    @mock.patch('galaxy_ng.app.api.ping.StatusView.get')
     def test_ping_missing_data_fields(self, mock_super_get):
         """Test ping endpoint handles missing data fields gracefully"""
         # StatusView response with missing some fields
@@ -185,18 +186,17 @@ class TestPingView(BaseTestCase):
             "online_content_apps": 1,
             "online_workers": 3
         }, status=http_status.HTTP_200_OK)
+        mock_super_get.return_value = mock_response
 
         view = PingView()
         view.request = self.client.get(self.ping_url).wsgi_request
-
-        with mock.patch('galaxy_ng.app.api.ping.StatusView.get', return_value=mock_response):
-            response = view.get(view.request)
+        response = view.get(view.request)
 
         # Should fail on missing online_api_apps (defaults to 0)
         self.assertEqual(response.status_code, http_status.HTTP_503_SERVICE_UNAVAILABLE)
         self.assertEqual(response.data["error"], "No online API apps available")
 
-    @mock.patch.object(PingView, 'get')
+    @mock.patch('galaxy_ng.app.api.ping.StatusView.get')
     def test_ping_database_connection_missing_connected_field(self, mock_super_get):
         """Test ping endpoint handles missing connected field in database_connection"""
         mock_response = Response({
@@ -206,12 +206,11 @@ class TestPingView(BaseTestCase):
             "online_content_apps": 1,
             "online_workers": 3
         }, status=http_status.HTTP_200_OK)
+        mock_super_get.return_value = mock_response
 
         view = PingView()
         view.request = self.client.get(self.ping_url).wsgi_request
-
-        with mock.patch('galaxy_ng.app.api.ping.StatusView.get', return_value=mock_response):
-            response = view.get(view.request)
+        response = view.get(view.request)
 
         self.assertEqual(response.status_code, http_status.HTTP_503_SERVICE_UNAVAILABLE)
         self.assertEqual(response.data["error"], "Database is not connected")
@@ -224,7 +223,7 @@ class TestPingView(BaseTestCase):
     def test_ping_url_mapping(self):
         """Test that ping URL is properly mapped"""
         url = reverse("galaxy:api:ping")
-        self.assertEqual(url, "/api/automation-hub/ping/")
+        self.assertEqual(url, "/api/galaxy/ping/")
 
 
 class TestPingApiView(BaseTestCase):
@@ -313,7 +312,7 @@ class TestPingApiView(BaseTestCase):
     def test_ping_api_url_mapping(self):
         """Test that ping/api/ URL is properly mapped"""
         url = reverse("galaxy:api:ping-api")
-        self.assertEqual(url, "/api/automation-hub/ping/api/")
+        self.assertEqual(url, "/api/galaxy/ping/api/")
 
 
 class TestPingContentView(BaseTestCase):
@@ -387,7 +386,7 @@ class TestPingContentView(BaseTestCase):
     def test_ping_content_url_mapping(self):
         """Test that ping/content/ URL is properly mapped"""
         url = reverse("galaxy:api:ping-content")
-        self.assertEqual(url, "/api/automation-hub/ping/content/")
+        self.assertEqual(url, "/api/galaxy/ping/content/")
 
 
 class TestPingWorkerView(BaseTestCase):
@@ -459,4 +458,4 @@ class TestPingWorkerView(BaseTestCase):
     def test_ping_worker_url_mapping(self):
         """Test that ping/worker/ URL is properly mapped"""
         url = reverse("galaxy:api:ping-worker")
-        self.assertEqual(url, "/api/automation-hub/ping/worker/")
+        self.assertEqual(url, "/api/galaxy/ping/worker/")
