@@ -2,6 +2,7 @@ from django.conf import settings
 from django.urls import include, path
 
 from . import views
+from .ping import PingView, PingApiView, PingContentView, PingWorkerView
 from .ui.v1 import urls as ui_v1_urls
 from .ui.v2 import urls as ui_v2_urls
 from .v1 import urls as v1_urls
@@ -64,6 +65,26 @@ urlpatterns = [
     path("_ui/v2/", include((ui_v2_urls, app_name), namespace="ui_v2")),
 
     path("", include((v3_combined, app_name), namespace='v3')),
+
+    path("ping/",
+         PingView.as_view(),
+         name="ping",
+         ),
+
+    path("ping/api/",
+         PingApiView.as_view(),
+         name="ping-api",
+         ),
+
+    path("ping/content/",
+         PingContentView.as_view(),
+         name="ping-content",
+         ),
+
+    path("ping/worker/",
+         PingWorkerView.as_view(),
+         name="ping-worker",
+         ),
 
     path("",
          views.ApiRootView.as_view(),
