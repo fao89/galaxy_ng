@@ -1,6 +1,5 @@
 from unittest import mock
 
-from django.test import override_settings
 from django.urls import reverse
 
 from rest_framework import status as http_status
@@ -62,8 +61,8 @@ class TestPingView(BaseTestCase):
         self.assertEqual(response.status_code, http_status.HTTP_503_SERVICE_UNAVAILABLE)
         self.assertEqual(response.data["error"], "Database is not connected")
 
+    @mock.patch('galaxy_ng.app.api.ping.settings.CACHE_ENABLED', True)
     @mock.patch('galaxy_ng.app.api.ping.StatusView.get')
-    @override_settings(CACHE_ENABLED=True)
     def test_ping_redis_disconnected_cache_enabled(self, mock_super_get):
         """Test ping endpoint returns 503 when Redis is disconnected and cache is enabled"""
         mock_response = Response({
@@ -82,9 +81,9 @@ class TestPingView(BaseTestCase):
         self.assertEqual(response.status_code, http_status.HTTP_503_SERVICE_UNAVAILABLE)
         self.assertEqual(response.data["error"], "Redis is not connected")
 
+    @mock.patch('galaxy_ng.app.api.ping.settings.CACHE_ENABLED', False)
     @mock.patch('galaxy_ng.app.api.ping.get_galaxy_ng_versions')
     @mock.patch('galaxy_ng.app.api.ping.StatusView.get')
-    @override_settings(CACHE_ENABLED=False)
     def test_ping_redis_disconnected_cache_disabled(self, mock_super_get, mock_get_versions):
         """Test ping endpoint ignores Redis when cache is disabled"""
         mock_response = Response({
